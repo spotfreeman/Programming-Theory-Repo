@@ -33,6 +33,14 @@ public class Bodega : MonoBehaviour
         }
     }
 
+    // ABSTRACTION: Permite sacar agua de la bodega para llevarla a la Planta
+    public int ExtraerAgua(int cantidadSolicitada)
+    {
+        int aguaExtraida = Mathf.Min(cantidadSolicitada, AguaAlmacenada);
+        AguaAlmacenada -= aguaExtraida;
+        return aguaExtraida;
+    }
+
     private void ActualizarUI()
     {
         if (textoAguaBodega != null)

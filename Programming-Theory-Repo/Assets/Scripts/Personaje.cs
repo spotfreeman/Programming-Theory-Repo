@@ -106,7 +106,7 @@ public class Personaje : MonoBehaviour
         }
     }
 
-    // Si choca con otro objeto que no sea el suelo, frena e interactúa con Estanque o Bodega
+    // Si choca con otro objeto que no sea el suelo, frena e interactúa con Estanque, Bodega o Planta
     protected virtual void OnCollisionEnter(Collision collision)
     {
         if (!collision.gameObject.CompareTag("Ground") && collision.gameObject.name != "Plane")
@@ -118,10 +118,15 @@ public class Personaje : MonoBehaviour
             {
                 RecolectarAgua(estanque); // ABSTRACTION
             }
-            // Si choca con la Bodega, deposita el agua que lleva
+            // Si choca con la Bodega, deposita o retira agua
             else if (collision.gameObject.TryGetComponent<Bodega>(out Bodega bodega))
             {
-                EntregarAgua(bodega); // ABSTRACTION
+                InteractuarConBodega(bodega); // ABSTRACTION
+            }
+            // Si choca con la Planta, la riega con el agua que lleva
+            else if (collision.gameObject.TryGetComponent<Planta>(out Planta planta))
+            {
+                RegarPlanta(planta); // ABSTRACTION
             }
         }
     }
@@ -134,18 +139,35 @@ public class Personaje : MonoBehaviour
         {
             int extraida = estanque.ExtraerAgua(espacioLibre);
             AguaCargada += extraida;
-            Debug.Log($"{gameObject.name} recolectó {extraida} de agua. Lleva: {AguaCargada}/{m_CapacidadAgua}");
+            Debug.Log($"{gameObject.name} recolectó {extraida} de agua del Estanque. Lleva: {AguaCargada}/{m_CapacidadAgua}");
         }
     }
 
-    // ABSTRACTION & POLYMORPHISM: Permite entregar el agua en la bodega
-    protected virtual void EntregarAgua(Bodega bodega)
+    // ABSTRACTION & POLYMORPHISM: Si lleva agua la deposita en la bodega; si va vacío, saca agua de la bodega
+    protected virtual void InteractuarConBodega(Bodega bodega)
     {
         if (AguaCargada > 0)
         {
             bodega.DepositarAgua(AguaCargada);
             Debug.Log($"{gameObject.name} depositó {AguaCargada} de agua en la Bodega.");
             AguaCargada = 0;
+        }
+        else
+        {
+            int extraida = bodega.ExtraerAgua(m_CapacidadAgua);
+            AguaCargada += extraida;
+            Debug.Log($"{gameObject.name} retiró {extraida} de agua de la Bodega. Lleva: {AguaCargada}/{m_CapacidadAgua}");
+        }
+    }
+
+    // ABSTRACTION & POLYMORPHISM: Riega la planta con el agua que lleva el personaje
+    protected virtual void RegarPlanta(Planta planta)
+    {
+        if (AguaCargada > 0)
+        {
+            int usada = planta.Regar(AguaCargada);
+            AguaCargada -= usada;
+            Debug.Log($"{gameObject.name} regó la Planta con {usada} de agua. Le queda: {AguaCargada}/{m_CapacidadAgua}");
         }
     }
 }

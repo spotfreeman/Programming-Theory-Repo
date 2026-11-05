@@ -348,8 +348,10 @@
 -r:"Library/Bee/artifacts/200b0aE.dag/UnityEditor.UI.ref.dll"
 -r:"Library/Bee/artifacts/200b0aE.dag/UnityEngine.UI.ref.dll"
 "Assets/Scripts/Bodega.cs"
+"Assets/Scripts/Bot.cs"
 "Assets/Scripts/Estanque.cs"
 "Assets/Scripts/Personaje.cs"
+"Assets/Scripts/Planta.cs"
 -langversion:9.0
 /deterministic
 /optimize+

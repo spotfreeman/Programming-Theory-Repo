@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class Personaje : MonoBehaviour
 {
@@ -22,10 +23,18 @@ public class Personaje : MonoBehaviour
     [SerializeField] protected int m_CapacidadAgua = 5;
     private int m_AguaCargada = 0;
 
+    [Header("UI (Opcional)")]
+    [SerializeField] protected TextMeshProUGUI textoPersonaje;
+    [SerializeField] protected float m_AlturaTexto = 1.2f;
+
     public int AguaCargada
     {
         get { return m_AguaCargada; }
-        protected set { m_AguaCargada = Mathf.Clamp(value, 0, m_CapacidadAgua); }
+        protected set
+        {
+            m_AguaCargada = Mathf.Clamp(value, 0, m_CapacidadAgua);
+            ActualizarUI(); // ABSTRACTION
+        }
     }
 
     protected Vector3 destino;
@@ -36,6 +45,8 @@ public class Personaje : MonoBehaviour
     {
         destino = transform.position;
         rb = GetComponent<Rigidbody>();
+        PosicionarTextoUI();
+        ActualizarUI();
     }
 
     protected virtual void Update()
@@ -43,6 +54,21 @@ public class Personaje : MonoBehaviour
         if (PersonajeSeleccionado == this)
         {
             DetectarClickDestino(); // ABSTRACTION
+        }
+
+        PosicionarTextoUI(); // ABSTRACTION
+    }
+
+        protected virtual void DetectarClickDestino()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+            Ray rayo = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(rayo, out RaycastHit hit))
+            {
+                destino = new Vector3(hit.point.x, transform.position.y, hit.point.z);
+                tieneDestino = true;
+            }
         }
     }
 
@@ -54,8 +80,8 @@ public class Personaje : MonoBehaviour
         }
         else if (rb != null)
         {
-            // Evita que el personaje se quede deslizándose solo por fuerzas residuales
-            rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
+            // Evita que el personaje se deslice o salte hacia arriba por choques físicos
+            rb.velocity = new Vector3(0f, Mathf.Min(0f, rb.velocity.y), 0f);
             rb.angularVelocity = Vector3.zero;
         }
     }
@@ -71,28 +97,18 @@ public class Personaje : MonoBehaviour
         Debug.Log("Personaje seleccionado: " + gameObject.name);
     }
 
-    protected virtual void DetectarClickDestino()
-    {
-        if (Input.GetMouseButtonDown(1))
-        {
-            Ray rayo = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(rayo, out RaycastHit hit))
-            {
-                destino = new Vector3(hit.point.x, transform.position.y, hit.point.z);
-                tieneDestino = true;
-            }
-        }
-    }
+
 
     // POLYMORPHISM: "virtual" permite que las clases hijas cambien cómo se mueven
     protected virtual void Mover()
     {
-        Vector3 nuevaPosicion = Vector3.MoveTowards(transform.position, destino, Velocidad * Time.fixedDeltaTime);
+        Vector3 destinoPlano = new Vector3(destino.x, transform.position.y, destino.z);
+        Vector3 nuevaPosicion = Vector3.MoveTowards(transform.position, destinoPlano, Velocidad * Time.fixedDeltaTime);
 
         if (rb != null)
         {
             rb.MovePosition(nuevaPosicion);
-            rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
+            rb.velocity = new Vector3(0f, Mathf.Min(0f, rb.velocity.y), 0f);
             rb.angularVelocity = Vector3.zero;
         }
         else
@@ -100,7 +116,7 @@ public class Personaje : MonoBehaviour
             transform.position = nuevaPosicion;
         }
 
-        if (Vector3.Distance(transform.position, destino) < 0.05f)
+        if (Vector3.Distance(transform.position, destinoPlano) < 0.05f)
         {
             tieneDestino = false;
         }
@@ -112,6 +128,12 @@ public class Personaje : MonoBehaviour
         if (!collision.gameObject.CompareTag("Ground") && collision.gameObject.name != "Plane")
         {
             tieneDestino = false;
+
+            if (rb != null)
+            {
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
 
             // Si choca con el Estanque, extrae agua
             if (collision.gameObject.TryGetComponent<Estanque>(out Estanque estanque))
@@ -168,6 +190,24 @@ public class Personaje : MonoBehaviour
             int usada = planta.Regar(AguaCargada);
             AguaCargada -= usada;
             Debug.Log($"{gameObject.name} regó la Planta con {usada} de agua. Le queda: {AguaCargada}/{m_CapacidadAgua}");
+        }
+    }
+
+    // ABSTRACTION: Actualiza el texto sobre el personaje si se le asignó uno en el Canvas
+    protected virtual void ActualizarUI()
+    {
+        if (textoPersonaje != null)
+        {
+            textoPersonaje.text = $"{gameObject.name}\n{AguaCargada} / {m_CapacidadAgua}";
+        }
+    }
+
+    // ABSTRACTION: Hace que el texto del Canvas siga al personaje en pantalla
+    protected void PosicionarTextoUI()
+    {
+        if (textoPersonaje != null && Camera.main != null)
+        {
+            textoPersonaje.transform.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * m_AlturaTexto);
         }
     }
 }

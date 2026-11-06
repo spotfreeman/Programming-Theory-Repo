@@ -5,6 +5,7 @@ public class Bodega : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI textoAguaBodega;
+    [SerializeField] private float m_AlturaTexto = 1.5f;
 
     private int m_AguaAlmacenada = 0;
 
@@ -21,7 +22,13 @@ public class Bodega : MonoBehaviour
 
     private void Start()
     {
+        PosicionarTextoUI();
         ActualizarUI();
+    }
+
+    private void Update()
+    {
+        PosicionarTextoUI(); // ABSTRACTION
     }
 
     // ABSTRACTION: El personaje llama a este método para entregar el agua que lleva
@@ -45,7 +52,16 @@ public class Bodega : MonoBehaviour
     {
         if (textoAguaBodega != null)
         {
-            textoAguaBodega.text = $"Bodega: {AguaAlmacenada}";
+            textoAguaBodega.text = $"Bodega\n{AguaAlmacenada}";
+        }
+    }
+
+    // ABSTRACTION: Ubica el texto del Canvas justo encima del objeto 3D en pantalla
+    private void PosicionarTextoUI()
+    {
+        if (textoAguaBodega != null && Camera.main != null)
+        {
+            textoAguaBodega.transform.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * m_AlturaTexto);
         }
     }
 }

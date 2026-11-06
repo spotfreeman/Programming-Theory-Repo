@@ -10,6 +10,7 @@ public class Estanque : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI textoAguaEstanque;
+    [SerializeField] private float m_AlturaTexto = 1.5f;
 
     private int m_AguaDisponible = 0;
 
@@ -28,12 +29,14 @@ public class Estanque : MonoBehaviour
 
     private void Start()
     {
+        PosicionarTextoUI();
         ActualizarUI();
     }
 
     private void Update()
     {
         GenerarAguaConElTiempo(); // ABSTRACTION
+        PosicionarTextoUI();      // ABSTRACTION
     }
 
     // ABSTRACTION: Lógica de generación periódica de agua
@@ -62,7 +65,16 @@ public class Estanque : MonoBehaviour
     {
         if (textoAguaEstanque != null)
         {
-            textoAguaEstanque.text = $"Estanque: {AguaDisponible} / {m_CapacidadMaxima}";
+            textoAguaEstanque.text = $"Estanque\n{AguaDisponible} / {m_CapacidadMaxima}";
+        }
+    }
+
+    // ABSTRACTION: Ubica el texto del Canvas justo encima del objeto 3D en pantalla
+    private void PosicionarTextoUI()
+    {
+        if (textoAguaEstanque != null && Camera.main != null)
+        {
+            textoAguaEstanque.transform.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * m_AlturaTexto);
         }
     }
 }

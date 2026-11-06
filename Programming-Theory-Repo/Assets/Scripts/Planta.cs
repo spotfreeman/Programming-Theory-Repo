@@ -11,6 +11,7 @@ public class Planta : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI textoAguaPlanta;
+    [SerializeField] private float m_AlturaTexto = 1.5f;
 
     private int m_AguaActual;
 
@@ -31,12 +32,14 @@ public class Planta : MonoBehaviour
 
     private void Start()
     {
+        PosicionarTextoUI();
         AguaActual = m_AguaInicial;
     }
 
     private void Update()
     {
         ConsumirAguaConElTiempo(); // ABSTRACTION
+        PosicionarTextoUI();      // ABSTRACTION
     }
 
     // ABSTRACTION: La planta consume agua periódicamente
@@ -67,12 +70,21 @@ public class Planta : MonoBehaviour
         {
             if (AguaActual > 0)
             {
-                textoAguaPlanta.text = $"Planta: {AguaActual} / {m_AguaMaxima}";
+                textoAguaPlanta.text = $"Planta\n{AguaActual} / {m_AguaMaxima}";
             }
             else
             {
-                textoAguaPlanta.text = "Planta: ¡SECA! (0)";
+                textoAguaPlanta.text = "Planta\n¡SECA! (0)";
             }
+        }
+    }
+
+    // ABSTRACTION: Ubica el texto del Canvas justo encima del objeto 3D en pantalla
+    private void PosicionarTextoUI()
+    {
+        if (textoAguaPlanta != null && Camera.main != null)
+        {
+            textoAguaPlanta.transform.position = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * m_AlturaTexto);
         }
     }
 }

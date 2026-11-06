@@ -71,7 +71,7 @@ public class Personaje : MonoBehaviour
         Debug.Log("Personaje seleccionado: " + gameObject.name);
     }
 
-    private void DetectarClickDestino()
+    protected virtual void DetectarClickDestino()
     {
         if (Input.GetMouseButtonDown(1))
         {
